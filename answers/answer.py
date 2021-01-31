@@ -85,7 +85,12 @@ def count(filename):
     '''
     
     # ADD YOUR CODE HERE
-    raise ExceptionException("Not implemented yet")
+    with open(filename, newline="", encoding='UTF-8') as csvfile:
+	    lines = csv.reader(csvfile, delimiter=",")
+	    count = 0
+	    for line in lines:
+	        count += 1
+    return count-1
 
 def parks(filename):
     '''
@@ -96,7 +101,13 @@ def parks(filename):
     '''
 
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    with open(filename) as csvfile:
+        lines = csv.reader(csvfile, delimiter=",")
+        count = 0
+        for line in lines:
+            if line[6] and line[6] != "<Null>" and line[6] != "Null":
+                count += 1
+    return count-1
 
 def uniq_parks(filename):
     '''
@@ -108,7 +119,16 @@ def uniq_parks(filename):
     '''
 
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    with open(filename, encoding='UTF-8') as csvfile:
+        lines = csv.reader(csvfile, delimiter=",")
+        parknames_set = set()
+        for line in lines:
+            if line[6] and line[6] != "<Null>" and line[6] != "Null":
+                parknames_set.add(line[6] + "\n")
+    parknames_set.remove("Nom_parc\n")
+    parknames = list(parknames_set)
+    parknames.sort()
+    return "".join(parknames)
 
 def uniq_parks_counts(filename):
     '''
@@ -116,13 +136,28 @@ def uniq_parks_counts(filename):
     and prints a list of "park,count" pairs in a CSV manner ordered
     alphabetically by the park name. Every element in the list must be printed
     on a new line.
-    Test file: tests/test_uniq_parks_counts.py
+    Test file: tests/test_uniq_parks_counts.py    Note: The return value should be a CSV string
     Note: The return value should be a CSV string
           Have a look at the file *tests/list_parks_count.txt* to get the exact return format.
     '''
 
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    with open(filename, encoding="UTF-8") as csvfile:
+        lines = csv.reader(csvfile)
+        pairs = {}
+        for line in lines:
+            if line[6] and line[6] != "<Null>" and line[6] != "Null":
+                if line[6] not in pairs:
+                    pairs[line[6]] = 1
+                else:
+                    pairs[line[6]] += 1
+    pairs.pop("Nom_parc")
+    result = ""
+    pairs = [(k, v) for k, v in pairs.items()]
+    pairs.sort(key=lambda tup: tup[0])
+    for k, v in pairs:
+        result += k + "," + str(v) + "\n"
+    return result
 
 def frequent_parks_count(filename):
     '''
@@ -136,7 +171,24 @@ def frequent_parks_count(filename):
     '''
 
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    with open(filename) as csvfile:
+        lines = csv.reader(csvfile)
+        pairs = {}
+        for line in lines:
+            if line[6] and line[6] != "<Null>" and line[6] != "Null":
+                if line[6] not in pairs:
+                    pairs[line[6]] = 1
+                else:
+                    pairs[line[6]] += 1
+    pairs.pop("Nom_parc")
+    result = ""
+    pairs = [(k, v) for k, v in pairs.items()]
+    pairs.sort(key=lambda tup: tup[1], reverse=True)
+    top_ten = [tup for tup in pairs[:10]]
+    for k, v in top_ten:
+        result += k + "," + str(v) + "\n"
+    return result
+
 
 def intersection(filename1, filename2):
     '''
@@ -149,7 +201,25 @@ def intersection(filename1, filename2):
     '''
 
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    with open(filename1, encoding='UTF-8') as csvfile, open(filename2, encoding='UTF-8') as csvfile2:
+        lines = csv.reader(csvfile)
+        lines2 = csv.reader(csvfile2)
+        parknames_set = set()
+        parknames_set2 = set()
+        for line in lines:
+            if line[6] and line[6] != "<Null>" and line[6] != "Null":
+                parknames_set.add(line[6] + "\n")
+        for line in lines2:
+            if line[6] and line[6] != "<Null>" and line[6] != "Null":
+                parknames_set2.add(line[6] + "\n")
+        parknames_set.remove("Nom_parc\n")
+        parknames_set2.remove("Nom_parc\n")
+
+    intersection = parknames_set.intersection(parknames_set2)
+    result = list(intersection)
+    result.sort()
+    return "".join(result)
+
 
 '''
 SPARK RDD IMPLEMENTATION
@@ -175,7 +245,7 @@ def count_rdd(filename):
     '''
 
     spark = init_spark()
-    
+
     # ADD YOUR CODE HERE
     raise Exception("Not implemented yet")
 
@@ -188,7 +258,7 @@ def parks_rdd(filename):
     '''
 
     spark = init_spark()
-    
+
     # ADD YOUR CODE HERE
     raise Exception("Not implemented yet")
 
@@ -198,7 +268,7 @@ def uniq_parks_rdd(filename):
     trees were treated. The list must be ordered alphabetically. Every element
     in the list must be printed on a new line.
     Test file: tests/test_uniq_parks_rdd.py
-    Note: The return value should be a CSV string
+
     '''
 
     spark = init_spark()

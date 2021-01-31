@@ -5,8 +5,8 @@ from answer import uniq_parks_counts
 def test_uniq_parks_count():
     a = uniq_parks_counts("./data/frenepublicinjection2016.csv")
     try:
-        out = open("tests/list_parks_count.txt","r").read()
+        out = open("tests/list_parks_count.txt","r", encoding="UTF-8").read()
         assert(a == out)
     except:
-        out = open("tests/list_parks_count.txt","r", encoding="ISO-8859-1").read()
+        out = open("tests/list_parks_count.txt","r", encoding="UTF-8").read()
         assert(a == out)
