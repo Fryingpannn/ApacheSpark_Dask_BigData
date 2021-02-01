@@ -351,7 +351,8 @@ def count_df(filename):
     spark = init_spark()
     
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    rdd = spark.sparkContext.textFile(filename)
+    return rdd.count()-1
 
 def parks_df(filename):
     '''
@@ -364,7 +365,10 @@ def parks_df(filename):
     spark = init_spark()
     
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    # creates dataframe
+    df = spark._create_shell_session().read.csv(filename, header=True, mode="DROPMALFORMED")
+    # drop null values from specific column
+    return df.na.drop(subset=["Nom_parc"]).count()
 
 def uniq_parks_df(filename):
     '''
@@ -378,7 +382,13 @@ def uniq_parks_df(filename):
     spark = init_spark()
     
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    df = spark._create_shell_session().read.csv(filename, header=True, mode="DROPMALFORMED", encoding="ISO-8859-1")
+    df = df.select("Nom_parc").na.drop()
+    df = df.dropDuplicates(["Nom_parc"])
+    tree_list = df.collect()
+    tree_list = list(map(lambda row: row['Nom_parc'], tree_list))
+    tree_list.sort()
+    return "\n".join(tree_list) + "\n"
 
 def uniq_parks_counts_df(filename):
     '''
@@ -394,7 +404,18 @@ def uniq_parks_counts_df(filename):
     spark = init_spark()
     
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    df = spark._create_shell_session().read.csv(filename, header=True, mode="DROPMALFORMED", encoding="ISO-8859-1")
+    df = df.select("Nom_parc").na.drop()
+    rdd = df.rdd.map(tuple)
+    rdd = rdd.map(lambda tup: (tup[0], 1))
+    # mapreduce
+    rdd = rdd.reduceByKey(lambda x, y: x + y)
+    tree_list = rdd.collect()
+    tree_list.sort()
+    trees = ""
+    for (k, v) in tree_list:
+        trees += k + "," + str(v) + "\n"
+    return trees
 
 def frequent_parks_count_df(filename):
     '''
@@ -410,7 +431,19 @@ def frequent_parks_count_df(filename):
     spark = init_spark()
     
     # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    df = spark._create_shell_session().read.csv(filename, header=True, mode="DROPMALFORMED", encoding="ISO-8859-1")
+    df = df.select("Nom_parc").na.drop()
+    rdd = df.rdd.map(tuple)
+    rdd = rdd.map(lambda tup: (tup[0], 1))
+    # mapreduce
+    rdd = rdd.reduceByKey(lambda x, y: x + y)
+    tree_list = rdd.collect()
+    tree_list.sort(key=lambda tup: tup[1], reverse=True)
+    top_ten = tree_list[:10]
+    trees = ""
+    for (k, v) in top_ten:
+        trees += k + "," + str(v) + "\n"
+    return trees
 
 def intersection_df(filename1, filename2):
     '''
@@ -423,9 +456,17 @@ def intersection_df(filename1, filename2):
     '''
 
     spark = init_spark()
-    
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+
+    df1 = spark._create_shell_session().read.csv(filename1, header=True, mode="DROPMALFORMED", encoding="ISO-8859-1")
+    df1 = df1.select("Nom_parc").na.drop()
+
+    df2 = spark._create_shell_session().read.csv(filename2, header=True, mode="DROPMALFORMED", encoding="ISO-8859-1")
+    df2 = df2.select("Nom_parc").na.drop()
+
+    join = df1.join(df2, on=['Nom_parc'], how="inner").dropDuplicates()
+    join = join.orderBy("Nom_parc")
+    parks = join.select("Nom_parc").rdd.map(lambda row: row['Nom_parc']).collect()
+    return "\n".join(parks) + "\n"
 
 '''
 DASK IMPLEMENTATION (bonus)
