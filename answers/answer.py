@@ -246,8 +246,9 @@ def count_rdd(filename):
 
     spark = init_spark()
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    rdd = spark.sparkContext.textFile(filename)
+    return rdd.count() -1
+
 
 def parks_rdd(filename):
     '''
@@ -259,8 +260,10 @@ def parks_rdd(filename):
 
     spark = init_spark()
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    d = spark.read.csv(filename, header=True)
+    rdd = d.rdd.map(tuple)
+    park_trees = rdd.filter(lambda x: x[6] is not None)
+    return park_trees.count()
 
 def uniq_parks_rdd(filename):
     '''
@@ -268,13 +271,16 @@ def uniq_parks_rdd(filename):
     trees were treated. The list must be ordered alphabetically. Every element
     in the list must be printed on a new line.
     Test file: tests/test_uniq_parks_rdd.py
-
     '''
 
     spark = init_spark()
     
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    d = spark.read.csv(filename, header=True, encoding="ISO-8859-1")
+    rdd = d.rdd.map(tuple)
+    park_trees = rdd.filter(lambda x: x[6] is not None).map(lambda x: x[6]).distinct().sortBy(lambda x: x[0])
+    park_trees = park_trees.collect()
+    park_trees.sort()
+    return "\n".join(park_trees) + "\n"
 
 def uniq_parks_counts_rdd(filename):
     '''
@@ -289,8 +295,15 @@ def uniq_parks_counts_rdd(filename):
 
     spark = init_spark()
     
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    d = spark.read.csv(filename, header=True, encoding="ISO-8859-1")
+    rdd = d.rdd.map(tuple)
+    park_trees = rdd.filter(lambda x: x[6] is not None).map(lambda x: (x[6], 1)).reduceByKey(lambda acc, value: acc + value)
+    park_trees = park_trees.collect()
+    park_trees.sort()
+    output = ""
+    for (k,v) in park_trees:
+        output += k + "," + str(v) + "\n"
+    return output
 
 def frequent_parks_count_rdd(filename):
     '''
@@ -304,9 +317,16 @@ def frequent_parks_count_rdd(filename):
     '''
 
     spark = init_spark()
-    
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+
+    d = spark.read.csv(filename, header=True, encoding="ISO-8859-1")
+    rdd = d.rdd.map(tuple)
+    park_trees = rdd.filter(lambda x: x[6] is not None).map(lambda x: (x[6], 1)).reduceByKey(lambda acc, value: acc + value)
+    park_trees = park_trees.sortBy(lambda x: x[1], False)
+    park_trees = park_trees.take(10)
+    output = ""
+    for (a, b) in park_trees:
+        output += a + "," + str(b) + "\n"
+    return output
 
 def intersection_rdd(filename1, filename2):
     '''
@@ -320,9 +340,16 @@ def intersection_rdd(filename1, filename2):
 
     spark = init_spark()
     
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    d = spark.read.csv(filename1, header=True, encoding="ISO-8859-1")
+    rdd = d.rdd.map(tuple)
+    rdd = rdd.filter(lambda x: x[6] is not None).map(lambda x: x[6])
 
+    d2 = spark.read.csv(filename2, header=True, encoding="ISO-8859-1")
+    rdd2 = d2.rdd.map(tuple)
+    rdd2 = rdd2.filter(lambda x: x[6] is not None).map(lambda x: x[6])
+
+    trees = rdd.intersection(rdd2).sortBy(lambda x: x[0]).take(3)
+    return "\n".join(trees) + "\n"
 
 '''
 SPARK DATAFRAME IMPLEMENTATION
@@ -351,8 +378,8 @@ def count_df(filename):
     spark = init_spark()
     
     # ADD YOUR CODE HERE
-    rdd = spark.sparkContext.textFile(filename)
-    return rdd.count()-1
+    df = spark._create_shell_session().read.csv(filename, header=True, mode="DROPMALFORMED")
+    return df.count()
 
 def parks_df(filename):
     '''
