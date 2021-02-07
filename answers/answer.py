@@ -515,8 +515,8 @@ def count_dask(filename):
     Note: The return value should be an integer
     '''
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    daskdf = df.read_csv("./data/frenepublicinjection2016.csv", dtype={"Nom_parc": str})
+    return len(daskdf)
 
 def parks_dask(filename):
     '''
@@ -526,8 +526,9 @@ def parks_dask(filename):
     Note: The return value should be an integer
     '''
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    dask = df.read_csv("./data/frenepublicinjection2016.csv", dtype={"Nom_parc": str})
+    parks = dask["Nom_parc"].dropna().compute()
+    return len(parks)
 
 def uniq_parks_dask(filename):
     '''
@@ -538,8 +539,10 @@ def uniq_parks_dask(filename):
     Note: The return value should be a CSV string
     '''
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    dask = df.read_csv("./data/frenepublicinjection2016.csv", dtype={"Nom_parc": str})
+    parks = dask["Nom_parc"].dropna().drop_duplicates().compute()
+    parks = parks.sort_values()
+    return "\n".join(parks) + "\n"
 
 def uniq_parks_counts_dask(filename):
     '''
@@ -552,8 +555,14 @@ def uniq_parks_counts_dask(filename):
           Have a look at the file *tests/list_parks_count.txt* to get the exact return format.
     '''
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    dask = df.read_csv(filename, dtype={"Nom_parc": str})
+    parks = dask["Nom_parc"].dropna()
+    parks = parks.to_frame().assign(count=1)
+    parks = parks.groupby("Nom_parc").sum().compute()
+    output = ""
+    for row in parks.iterrows():
+        output += row[0] + "," + str(row[1][0]) + "\n"
+    return output
 
 def frequent_parks_count_dask(filename):
     '''
@@ -566,8 +575,16 @@ def frequent_parks_count_dask(filename):
           Have a look at the file *tests/frequent.txt* to get the exact return format.
     '''
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    dask = df.read_csv(filename, dtype={"Nom_parc": str})
+    parks = dask["Nom_parc"].dropna()
+    parks = parks.to_frame().assign(count=1)
+    parks = parks.groupby("Nom_parc").sum().compute()
+    parks = parks.nlargest(10, ['count'])
+
+    output = ""
+    for row in parks.iterrows():
+        output += row[0] + "," + str(row[1][0]) + "\n"
+    return output
 
 def intersection_dask(filename1, filename2):
     '''
@@ -579,5 +596,15 @@ def intersection_dask(filename1, filename2):
           Have a look at the file *tests/intersection.txt* to get the exact return format.
     '''
 
-    # ADD YOUR CODE HERE
-    raise Exception("Not implemented yet")
+    dask = df.read_csv(filename1, dtype={"No_Civiq": str, "Nom_parc": str})
+    dask = dask["Nom_parc"].dropna()
+
+    dask2 = df.read_csv(filename2, dtype={"No_Civiq": str, "Nom_parc": str})
+    dask2 = dask2["Nom_parc"].dropna()
+
+    inter = set(dask).intersection(set(dask2))
+    inter = sorted(inter)
+    return "\n".join(inter) + "\n"
+
+
+
